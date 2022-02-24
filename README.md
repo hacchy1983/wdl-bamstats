@@ -1,89 +1,28 @@
 [![Docker Repository on Quay.io](https://quay.io/repository/collaboratory/dockstore-tool-bamstats/status "Docker Repository on Quay.io")](https://quay.io/repository/collaboratory/dockstore-tool-bamstats)
-[![Build Status](https://travis-ci.org/CancerCollaboratory/dockstore-tool-bamstats.svg)](https://travis-ci.org/CancerCollaboratory/dockstore-tool-bamstats)
 
 # dockstore-tool-bamstats
 
-A repo for the `Dockerfile` to create a Docker image for the BAMStats command. Also contains the
-`Dockstore.yml` which is used by the [Dockstore](https://www.dockstore.org) to register
-this container and describe how to call BAMStats for the community.
-
-## Validation 
-
-This tool has been validated as a CWL draft-3 and v1.0 CommandLineTool. 
-
-Versions that we tested with are the following 
-```
-avro (1.8.1)
-cwl-runner (1.0)
-cwl-upgrader (0.1.1)
-cwltool (1.0.20160712154127)
-schema-salad (1.14.20160708181155)
-setuptools (25.1.6)
-```
-
-
-## Building Manually
-
-Normally you would let [Quay.io](http://quay.io) build this.  But, if you need to build
-manually you would execute:
-
-    docker build -t collaboratory/dockstore-tool-bamstats:1.25-3 .
-
-## Running Manually
-
-```
-$ wget ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/data/NA12878/alignment/NA12878.chrom20.ILLUMINA.bwa.CEU.low_coverage.20121211.bam
-$ docker run -it -v `pwd`/NA12878.chrom20.ILLUMINA.bwa.CEU.low_coverage.20121211.bam:/NA12878.chrom20.ILLUMINA.bwa.CEU.low_coverage.20121211.bam collaboratory/dockstore-tool-bamstats:1.25-3
-
-# within the docker container
-$ /usr/local/bin/bamstats 4 /NA12878.chrom20.ILLUMINA.bwa.CEU.low_coverage.20121211.bam
-```
-You'll then see a file, `bamstats_report.zip`, in the current directory, that's the report file. You can use `-v` to mount the result out of the container.
+A fork of bamstats to focus entirely on the WDL aspect for tutorial purposes.
 
 ## Running Through the Dockstore CLI
 
-This tool can be found at the [Dockstore](https://dockstore.org), login with your GitHub account and follow the 
-directions to setup the CLI.  It lets you run a Docker container with a CWL/WDL descriptor locally, using Docker and the CWL/WDL command line utility.  This is great for testing.
+This workflow can be found at the [Dockstore](https://dockstore.org). Login with your GitHub account and follow the directions to setup the CLI. It lets you run a Docker container with a CWL/WDL descriptor locally, using Docker and the CWL/WDL command line utility. This is great for testing.
 
-### With CWL
+### Make a parameters JSON
 
-#### Make a Parameters JSON
-
-This is the parameterization of the BAM stat tool, a copy is present in this repo called `sample_configs.json`:
-
+Parameterization of the workflow is done via a JSON file of key-value pairs to fill in the workflow's input variables. You can generate one using Dockstore's wdl2json feature:
 ```
+$ dockstore workflow convert wdl2json --wdl Dockstore.wdl > Dockstore.json
+$ cat Dockstore.json
 {
-  "bam_input": {
-        "class": "File",
-        "path": "ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/phase3/data/NA12878/alignment/NA12878.chrom20.ILLUMINA.bwa.CEU.low_coverage.20121211.bam"
-    },
-    "bamstats_report": {
-        "class": "File",
-        "path": "/tmp/bamstats_report.zip"
-    }
+  "bamstatsWorkflow.mem_gb": "Int",
+  "bamstatsWorkflow.bam_input": "File"
 }
 ```
-
-#### Run with the CLI
-
-Run it using the `dockstore` CLI:
+The current values, `Int` and `File` in this case, tell you what type is expected. You need to fill these in the actual values you intend on using. A filled-in example is present in this repo as `test.wdl.json`
 
 ```
-Usage:
-# fetch CWL
-$> dockstore tool cwl --entry quay.io/collaboratory/dockstore-tool-bamstats:1.25-3 > Dockstore.cwl
-# make a runtime JSON template and edit it (or use the content of sample_configs.json above)
-$> dockstore tool convert cwl2json --cwl Dockstore.cwl > Dockstore.json
-# run it locally with the Dockstore CLI
-$> dockstore tool launch --entry quay.io/collaboratory/dockstore-tool-bamstats:1.25-3 --json Dockstore.json
-```
-
-### With WDL
-#### Make a Parameters JSON
-
-This is the parameterization of the BAM stat tool, a copy is present in this repo called `test.wdl.json`:
-
-```
+$ cat test.wdl.json
 {
   "bamstatsWorkflow.bam_input": "rna.SRR948778.bam",
   "bamstatsWorkflow.mem_gb": "4"
@@ -92,23 +31,11 @@ This is the parameterization of the BAM stat tool, a copy is present in this rep
 
 #### Run with the CLI
 
-Run it using the `dockstore` CLI:
+Run it using the Dockstore CLI:
 
 ```
-Usage:
-# fetch WDL
-$> dockstore tool wdl --entry quay.io/collaboratory/dockstore-tool-bamstats > Dockstore.wdl
-# make a runtime JSON template and edit it (or use the content of test.wdl.json above)
-$> dockstore tool convert wdl2json --wdl Dockstore.wdl > Dockstore.json
-# run it locally with the Dockstore CLI
-$> dockstore tool launch --entry quay.io/collaboratory/dockstore-tool-bamstats --json Dockstore.json
+$ dockstore workflow launch --local-entry Dockstore.wdl --json Dockstore.json
 ```
+You could replace `Dockstore.json` with `test.wdl.json` if you'd prefer to use the filled-in example JSON we provided, but keep in mind you will also need our example test data, rna.SRR948778.bam, and it will need to be in the same folder as test.wdl.json!
 
-## Running Nextflow Workflow
-
-Install [Nextflow](https://www.nextflow.io/). Nextflow workflows cannot be run with the Dockstore CLI yet.
-
-The workflow can be run using the following command:
-```
-$> nextflow run main.nf
-```
+The Dockstore CLI will then call upon [Cromwell](https://github.com/broadinstitute/cromwell), which launches the WDL workflow on your local machine. In a few minutes, you should see that your workflow has successfully completed, generating a zip file.
