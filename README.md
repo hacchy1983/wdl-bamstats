@@ -2,7 +2,7 @@
 
 # wdl-bamstats
 
-A fork of bamstats to focus entirely on the WDL aspect for tutorial purposes.
+A fork of bamstats to focus entirely on the WDL aspect for tutorial purposes. Please see [our Getting Started With WDL tutorial](https://docs.dockstore.org/en/stable/getting-started/getting-started-with-wdl.html) for more information.
 
 ## Running Through the Dockstore CLI
 
