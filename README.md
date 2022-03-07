@@ -1,6 +1,6 @@
 [![Docker Repository on Quay.io](https://quay.io/repository/collaboratory/dockstore-tool-bamstats/status "Docker Repository on Quay.io")](https://quay.io/repository/collaboratory/dockstore-tool-bamstats)
 
-# dockstore-tool-bamstats
+# wdl-bamstats
 
 A fork of bamstats to focus entirely on the WDL aspect for tutorial purposes.
 
