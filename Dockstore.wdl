@@ -28,6 +28,10 @@ workflow bamstatsWorkflow {
     
     call bamstats { input: bam_input=bam_input, mem_gb=mem_gb }
 
+    output {
+    	   File bamstats_report_zip = bamstats.bamstats_report
+    }   
+
     meta {
         author: "Andrew Duncan"
         email: "andrew@foobar.com"
